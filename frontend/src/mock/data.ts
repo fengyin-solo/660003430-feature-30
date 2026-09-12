@@ -1,4 +1,4 @@
-import type { CognateSet, LanguageFamily } from '../types'
+import type { CognateSet, LanguageFamily, Topic } from '../types'
 
 export const LANGUAGE_FAMILIES: LanguageFamily[] = [
   { id: 'ie', name: '印欧语系', color: '#3b82f6', languages: ['英语','法语','德语','西班牙语','俄语','拉丁语'], era: '公元前4000年' },
@@ -24,6 +24,21 @@ export const COGNATE_SETS: CognateSet[] = [
   { root: '*sker-', meaning: '切割', languages: { '英语': 'shear', '德语': 'scheren', '俄语': 'резать', '拉丁语': 'scindere' }, period: 'PIE', family: 'ie' },
   { root: '*gʷen-', meaning: '女人', languages: { '英语': 'queen', '德语': 'Frau', '俄语': 'жена' }, period: 'PIE', family: 'ie' },
 ]
+
+export const TOPICS: Topic[] = [
+  { id: 'kinship', name: '亲属称谓', icon: '👪', keywords: ['亲属', '称谓', '家庭', 'kin', 'family', 'mother', 'father'], meanings: ['母亲', '父亲', '女人'] },
+  { id: 'body', name: '身体部位', icon: '👁️', keywords: ['身体', '人体', '部位', 'body', 'foot', 'eye'], meanings: ['脚/足', '眼睛'] },
+  { id: 'nature', name: '自然天象', icon: '🌞', keywords: ['自然', '天象', '水', '太阳', '光', '夜晚', 'nature', 'water', 'sun', 'light', 'night'], meanings: ['水', '水/Water', '太阳', '光/亮', '夜晚'] },
+  { id: 'life', name: '居所与认知', icon: '🏠', keywords: ['家', '居所', '吃', '知道', '认知', 'house', 'home', 'eat', 'know'], meanings: ['家', '吃', '知道'] },
+  { id: 'animals', name: '动植物', icon: '🦅', keywords: ['动物', '植物', '鸟', '鹰', 'animal', 'eagle', 'bird'], meanings: ['鹰'] },
+  { id: 'actions', name: '动作与制造', icon: '✂️', keywords: ['动作', '切割', '制造', 'cut', 'shear', 'action'], meanings: ['切割'] },
+]
+
+export const FEATURED_ROOTS = ['*pṓds', '*mātér', '*sol-', '*nokʷt-']
+
+export function setsByTopic(topic: Topic): CognateSet[] {
+  return COGNATE_SETS.filter(cs => topic.meanings.some(m => cs.meaning.includes(m) || m.includes(cs.meaning)))
+}
 
 export function buildGraph() {
   const nodes: any[] = []

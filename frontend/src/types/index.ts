@@ -12,6 +12,11 @@ export interface CognateSet {
   languages: Record<string, string>
   period: string; family: string
 }
+export interface Topic {
+  id: string; name: string
+  keywords: string[]; meanings: string[]
+  icon: string
+}
 export interface LanguageFamily {
   id: string; name: string; color: string; languages: string[]; era: string
 }

@@ -51,7 +51,14 @@
             <option v-for="f in LANGUAGE_FAMILIES" :key="f.id" :value="f.id">{{ f.name }}</option>
           </select>
         </div>
-        <div class="overflow-x-auto max-h-64 overflow-y-auto">
+        <div v-if="currentTopic" class="mb-2 flex items-center gap-2 text-xs">
+          <span class="inline-flex items-center gap-1 bg-cyan-500/10 text-cyan-300 border border-cyan-500/40 rounded-full px-2.5 py-1">
+            <span>{{ currentTopic.icon }}</span>主题：{{ currentTopic.name }}
+            <button class="ml-1 text-cyan-400/70 hover:text-cyan-200" title="退出主题" @click="store.clearTopic()">✕</button>
+          </span>
+        </div>
+        <p v-if="!store.noResults" class="text-xs text-slate-500 mb-2">共 {{ store.filteredCognates.length }} 组同源词</p>
+        <div v-show="!store.noResults" class="overflow-x-auto max-h-64 overflow-y-auto">
           <table class="w-full text-xs">
             <thead class="sticky top-0 bg-slate-700">
               <tr>
@@ -79,19 +86,65 @@
             </tbody>
           </table>
         </div>
+        <div v-if="store.noResults" class="rounded-lg border border-dashed border-slate-600 bg-slate-900/60 p-5">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🔍</span>
+            <div>
+              <p class="text-sm font-bold text-slate-300">
+                <template v-if="store.searchQuery">未找到与「{{ store.searchQuery }}」匹配的词根</template>
+                <template v-else>当前筛选条件下暂无词根</template>
+              </p>
+              <p class="text-xs text-slate-500 mt-0.5">试试下面的相近词根或主题入口，继续探索词源网络</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <p class="text-xs font-bold text-slate-400 mb-2">{{ store.suggestedRoots.length ? '你是不是想找：' : '热门词根：' }}</p>
+            <div class="flex flex-wrap gap-2">
+              <button v-for="cs in (store.suggestedRoots.length ? store.suggestedRoots : store.featuredCognates)" :key="cs.root"
+                class="group rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs hover:border-cyan-500 hover:bg-slate-700 transition-colors"
+                @click="store.applyRootSuggestion(cs.root)">
+                <span class="font-mono font-bold text-cyan-300 group-hover:text-cyan-200">{{ cs.root }}</span>
+                <span class="text-slate-500"> · {{ cs.meaning }}</span>
+              </button>
+            </div>
+          </div>
+          <div v-if="store.relatedTopics.length" class="mt-4">
+            <p class="text-xs font-bold text-slate-400 mb-2">相近主题：</p>
+            <div class="flex flex-wrap gap-2">
+              <button v-for="t in store.relatedTopics" :key="t.topic.id"
+                class="rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs hover:border-green-500 hover:bg-slate-700 transition-colors"
+                @click="store.applyTopic(t.topic.id)">
+                <span>{{ t.topic.icon }}</span>
+                <span class="ml-1 text-slate-200">{{ t.topic.name }}</span>
+                <span class="ml-1 text-slate-500">{{ t.count }} 个词根</span>
+              </button>
+            </div>
+          </div>
+          <div class="mt-4">
+            <button class="text-xs text-cyan-400 hover:text-cyan-300 hover:underline" @click="resetFilters">清除全部筛选条件</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import * as d3 from 'd3'
-import { useEtymologyStore, LANGUAGE_FAMILIES } from './store/etymology'
+import { useEtymologyStore, LANGUAGE_FAMILIES, TOPICS } from './store/etymology'
 
 const store = useEtymologyStore()
 const svgRef = ref<SVGSVGElement | null>(null)
 const COLORS: Record<string, string> = { ie: '#3b82f6', st: '#22c55e', aa: '#f59e0b', ural: '#8b5cf6' }
+
+const currentTopic = computed(() => TOPICS.find(t => t.id === store.selectedTopic) || null)
+
+function resetFilters() {
+  store.searchQuery = ''
+  store.selectedFamily = 'all'
+  store.clearTopic()
+}
 
 function drawGraph() {
   if (!svgRef.value) return
